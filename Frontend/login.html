@@ -1,0 +1,189 @@
+<!-- <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login — FinTwin</title><link rel="stylesheet" href="../css/global.css"></head><body data-auth="login"><main class="auth"><section class="auth-side"><a class="brand" href="../index.html">Fin<b>Twin</b></a><h1>Your finances,<br><span class="gradient">made visible.</span></h1><p>See the decisions that shape your financial future before you make them.</p></section><section class="auth-form"><div><a class="brand" href="../index.html">Fin<b>Twin</b></a><h2>Welcome back</h2><p class="muted">Continue building a more resilient future.</p><form id="authForm"><label class="field">Email<input class="input" name="email" type="email" placeholder="you@example.com" required></label><label class="field">Password<div style="display:flex;gap:8px"><input class="input" id="password" name="password" type="password" required><button class="btn secondary toggle" type="button">Show</button></div></label><p id="error" class="form-error"></p><button class="btn">Log In</button><a class="muted" href="forgot-password.html">Forgot Password?</a><p class="muted">Don't have an account? <a class="positive" href="signup.html">Create Account</a></p></form></div></section></main><script type="module" src="../js/auth.js"></script></body></html> -->
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        Login — FinTwin
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="../css/global.css"
+    >
+</head>
+
+<body data-auth="login">
+
+    <!-- ========================================
+         AUTHENTICATION PAGE
+         ======================================== -->
+
+    <main class="auth">
+
+        <!-- ====================================
+             BRANDING / INTRODUCTION
+             ==================================== -->
+
+        <section class="auth-side">
+
+            <a
+                class="brand"
+                href="../index.html"
+            >
+                Fin<b>Twin</b>
+            </a>
+
+            <h1>
+                Your finances,
+                <br>
+
+                <span class="gradient">
+                    made visible.
+                </span>
+            </h1>
+
+            <p>
+                See the decisions that shape your financial future
+                before you make them.
+            </p>
+
+        </section>
+
+
+        <!-- ====================================
+             LOGIN FORM
+             ==================================== -->
+
+        <section class="auth-form">
+
+            <div>
+
+                <a
+                    class="brand"
+                    href="../index.html"
+                >
+                    Fin<b>Twin</b>
+                </a>
+
+                <h2>
+                    Welcome back
+                </h2>
+
+                <p class="muted">
+                    Continue building a more resilient future.
+                </p>
+
+
+                <form id="authForm">
+
+                    <!-- Email -->
+
+                    <label class="field">
+                        Email
+
+                        <input
+                            class="input"
+                            name="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </label>
+
+
+                    <!-- Password -->
+
+                    <label class="field">
+                        Password
+
+                        <div style="display: flex; gap: 8px;">
+
+                            <input
+                                class="input"
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                            >
+
+                            <button
+                                class="btn secondary toggle"
+                                type="button"
+                            >
+                                Show
+                            </button>
+
+                        </div>
+
+                    </label>
+
+
+                    <!-- Error Message -->
+
+                    <p
+                        id="error"
+                        class="form-error"
+                    ></p>
+
+
+                    <!-- Login -->
+
+                    <button class="btn">
+                        Log In
+                    </button>
+
+
+                    <!-- Forgot Password -->
+
+                    <a
+                        class="muted"
+                        href="forgot-password.html"
+                    >
+                        Forgot Password?
+                    </a>
+
+
+                    <!-- Sign Up -->
+
+                    <p class="muted">
+
+                        Don't have an account?
+
+                        <a
+                            class="positive"
+                            href="signup.html"
+                        >
+                            Create Account
+                        </a>
+
+                    </p>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ========================================
+         JAVASCRIPT
+         ======================================== -->
+
+    <script
+        type="module"
+        src="../js/auth.js"
+    ></script>
+
+</body>
+
+</html>
