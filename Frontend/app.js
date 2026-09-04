@@ -22,33 +22,6 @@
 import { data } from './mockData.js';
 import { api } from './api.js';
 
-async function refreshServerData() {
-    const [user, transactions, goals, budgets] = await Promise.all([
-        api.getProfile(), api.getTransactions(), api.getGoals(), api.getBudget()
-    ]);
-    const income = transactions.filter((item) => item.type === 'income')
-        .reduce((total, item) => total + Number(item.amount), 0);
-    const expenses = transactions.filter((item) => item.type === 'expense')
-        .reduce((total, item) => total + Number(item.amount), 0);
-
-    data.user = user;
-    data.transactions = transactions.map((item) => ({
-        ...item, id: item._id,
-        type: item.type === 'income' ? 'Income' : 'Expense',
-        date: new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-    }));
-    data.goals = goals.map((item) => ({
-        ...item, id: item._id,
-        priority: item.priority[0].toUpperCase() + item.priority.slice(1),
-        date: new Date(item.date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
-    }));
-    data.budgets = budgets;
-    data.income = income || Number(user.monthlyIncome) || 0;
-    data.expenses = expenses || Number(user.monthlyExpenses) || 0;
-    data.surplus = data.income - data.expenses;
-    data.resilience = 0;
-}
-
 
 // ========================================
 // DOM & PAGE CONFIGURATION
@@ -1839,6 +1812,43 @@ function toast(message) {
 
 }
 
+async function refreshServerData() {
+    const profileResponse = await api.getProfile();
+    const transactionResponse = await api.getTransactions();
+    const goalResponse = await api.getGoals();
+
+    const user = profileResponse?.user ?? profileResponse;
+
+    const transactions = Array.isArray(transactionResponse)
+        ? transactionResponse
+        : transactionResponse?.transactions ?? [];
+
+    const goals = Array.isArray(goalResponse)
+        ? goalResponse
+        : goalResponse?.goals ?? [];
+
+    data.user = user;
+    data.transactions = transactions;
+    data.goals = goals;
+
+    let income = 0;
+    let expenses = 0;
+
+    for (const transaction of transactions) {
+        const amount = Number(transaction.amount) || 0;
+        const type = String(transaction.type || '').toLowerCase();
+
+        if (type === 'income') {
+            income += amount;
+        } else {
+            expenses += amount;
+        }
+    }
+
+    data.income = income;
+    data.expenses = expenses;
+    data.surplus = income - expenses;
+}
 
 // ========================================
 // PAGE ROUTER
@@ -1856,24 +1866,47 @@ const pages = {
     settings
 };
 
-
 (async () => {
+
     if (!localStorage.getItem('token')) {
         window.location.replace('login.html');
         return;
     }
 
     try {
+
         await refreshServerData();
+
         (pages[page] || dashboard)();
+
     } catch (error) {
-        console.error('Unable to load FinTwin data:', error);
-        if (/Authentication|Token|expired/i.test(error.message)) {
+
+        console.error(
+            'Unable to load FinTwin data:',
+            error
+        );
+
+        if (
+            /Authentication|Token|expired/i
+                .test(error.message)
+        ) {
+
             localStorage.removeItem('token');
-            window.location.replace('login.html');
+
+            window.location.replace(
+                'login.html'
+            );
+
             return;
         }
-        document.body.innerHTML = `<main class="auth"><p class="form-error">${error.message}</p></main>`;
-    }
-})();
 
+        document.body.innerHTML = `
+            <main class="auth">
+                <p class="form-error">
+                    ${error.message}
+                </p>
+            </main>
+        `;
+    }
+
+})();
