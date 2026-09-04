@@ -197,4 +197,26 @@ router.get('/profile', authMiddleware, async (req, res) => {
     }
 
 });
+
+router.patch('/profile', authMiddleware, async (req, res) => {
+    try {
+        const allowedFields = ['name', 'monthlyIncome', 'monthlyExpenses', 'savings'];
+        const updates = {};
+
+        allowedFields.forEach((field) => {
+            if (req.body[field] !== undefined) updates[field] = req.body[field];
+        });
+
+        const user = await User.findByIdAndUpdate(
+            req.userId, updates, { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: 'Profile updated successfully', user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;

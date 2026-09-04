@@ -70,8 +70,10 @@ if (page === 'login') {
 
             console.log('Login successful');
 
-            // Move to onboarding after successful login
-            window.location.href = 'onboarding.html';
+            // Returning users should not repeat onboarding and create duplicate goals.
+            window.location.href = localStorage.getItem('fintwin-onboarding')
+                ? 'dashboard.html'
+                : 'onboarding.html';
 
         } catch (error) {
 

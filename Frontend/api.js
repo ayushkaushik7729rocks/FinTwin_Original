@@ -148,6 +148,15 @@ export const api = {
         return result.user;
     },
 
+    updateProfile: async (profile) => {
+        const result = await request('/api/auth/profile', {
+            method: 'PATCH',
+            body: JSON.stringify(profile)
+        });
+
+        return result.user;
+    },
+
 
     // ====================================
     // TRANSACTIONS

@@ -19,10 +19,35 @@
 // function toast(msg){let x=document.createElement('div');x.className='toast';x.textContent=msg;document.body.append(x);setTimeout(()=>x.remove(),2500)}
 // ({dashboard,transactions,budget,goals:goalsPage,'financial-twin':twin,simulator,affordability,coach,settings}[page]||dashboard)();
 
-import { data, load, save } from './mockData.js';
+import { data } from './mockData.js';
 import { api } from './api.js';
 
-load();
+async function refreshServerData() {
+    const [user, transactions, goals, budgets] = await Promise.all([
+        api.getProfile(), api.getTransactions(), api.getGoals(), api.getBudget()
+    ]);
+    const income = transactions.filter((item) => item.type === 'income')
+        .reduce((total, item) => total + Number(item.amount), 0);
+    const expenses = transactions.filter((item) => item.type === 'expense')
+        .reduce((total, item) => total + Number(item.amount), 0);
+
+    data.user = user;
+    data.transactions = transactions.map((item) => ({
+        ...item, id: item._id,
+        type: item.type === 'income' ? 'Income' : 'Expense',
+        date: new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+    }));
+    data.goals = goals.map((item) => ({
+        ...item, id: item._id,
+        priority: item.priority[0].toUpperCase() + item.priority.slice(1),
+        date: new Date(item.date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+    }));
+    data.budgets = budgets;
+    data.income = income || Number(user.monthlyIncome) || 0;
+    data.expenses = expenses || Number(user.monthlyExpenses) || 0;
+    data.surplus = data.income - data.expenses;
+    data.resilience = 0;
+}
 
 
 // ========================================
@@ -554,11 +579,9 @@ function transactions() {
 
         if (event.target.dataset.del) {
 
-            await api.deleteTransaction(
-                event.target.dataset.del
-            );
-
-            render();
+            await api.deleteTransaction(event.target.dataset.del);
+            await refreshServerData();
+            transactions();
 
             toast('Transaction deleted');
         }
@@ -621,11 +644,11 @@ function transactions() {
                     description: form.description.value,
                     amount: +form.amount.value,
                     category: form.category.value,
-                    type: form.type.value,
-                    date: 'Today'
+                    type: form.type.value.toLowerCase(),
+                    date: new Date().toISOString()
                 });
-
-                render();
+                await refreshServerData();
+                transactions();
 
                 toast('Transaction added');
 
@@ -755,10 +778,29 @@ function budget() {
     );
 
 
-    $('#generate').onclick = () =>
-        toast(
-            'Personalized demo budget generated'
-        );
+    $('#generate').onclick = async () => {
+        const totalBudget = Math.max(0, data.expenses);
+        const categoryLimit = categories.length
+            ? Math.round(totalBudget / categories.length)
+            : 0;
+
+        try {
+            await api.createBudget({
+                month: new Date().toLocaleString('en-US', {
+                    month: 'long', year: 'numeric'
+                }),
+                totalBudget,
+                categories: categories.map((name) => ({
+                    name,
+                    limit: categoryLimit
+                }))
+            });
+            await refreshServerData();
+            toast('Budget saved successfully');
+        } catch (error) {
+            toast(error.message || 'Unable to save budget');
+        }
+    };
 
 }
 
@@ -881,11 +923,7 @@ function goalsPage() {
                 <label class="field">
                     Target date
 
-                    <input
-                        class="input"
-                        name="date"
-                        placeholder="Dec 2027"
-                    >
+                    <input class="input" type="date" name="date" required>
                 </label>
             `,
             async (form) => {
@@ -894,13 +932,12 @@ function goalsPage() {
                     name: form.name.value,
                     target: +form.target.value,
                     current: +form.current.value,
-                    date: form.date.value || 'TBD',
+                    date: form.date.value,
                     contribution: 0,
-                    priority: 'Medium'
+                    priority: 'medium'
                 });
-
-                $('#goalCards').innerHTML =
-                    goalCards();
+                await refreshServerData();
+                goalsPage();
 
                 toast('Goal created');
 
@@ -1712,7 +1749,7 @@ function settings() {
 
 
     $('#logout').onclick = () => {
-        location.href = 'login.html';
+        api.logout();
     };
 
 }
@@ -1820,5 +1857,23 @@ const pages = {
 };
 
 
-(pages[page] || dashboard)();
+(async () => {
+    if (!localStorage.getItem('token')) {
+        window.location.replace('login.html');
+        return;
+    }
+
+    try {
+        await refreshServerData();
+        (pages[page] || dashboard)();
+    } catch (error) {
+        console.error('Unable to load FinTwin data:', error);
+        if (/Authentication|Token|expired/i.test(error.message)) {
+            localStorage.removeItem('token');
+            window.location.replace('login.html');
+            return;
+        }
+        document.body.innerHTML = `<main class="auth"><p class="form-error">${error.message}</p></main>`;
+    }
+})();
 
